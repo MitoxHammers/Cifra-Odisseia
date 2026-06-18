@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cinemática 3D — Garra Robótica</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f5f4f0;
+    color: #2c2c2a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  h1 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #888780; margin-bottom: 20px; }
+
+  .card {
+    background: #fff;
+    border: 0.5px solid #d3d1c7;
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    max-width: 720px;
+  }
+
+  svg { width: 100%; display: block; }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid #d3d1c7;
+    margin: 16px 0;
+  }
+
+  .ctrl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    font-size: 13px;
+    color: #5f5e5a;
+  }
+  .ctrl label { min-width: 120px; font-size: 12px; }
+  .ctrl input[type=range] { flex: 1; accent-color: #3B8BD4; }
+  .ctrl span {
+    min-width: 40px;
+    text-align: right;
+    font-size: 13px;
+    color: #2c2c2a;
+    font-weight: 500;
+  }
+
+  .info {
+    font-size: 12px;
+    color: #5f5e5a;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f5f4f0;
+    border-radius: 8px;
+    border: 0.5px solid #d3d1c7;
+    line-height: 2;
+  }
+  .info b { color: #2c2c2a; }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #5f5e5a;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot {
+    width: 12px; height: 4px; border-radius: 2px;
+  }
+
+  footer {
+    margin-top: 20px;
+    font-size: 11px;
+    color: #b4b2a9;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<h1>Simulador de Cinemática 3D — Garra Robótica</h1>
+<p class="subtitle">Duas vistas: lateral (plano vertical) e superior (plano horizontal)</p>
+
+<div class="card">
+  <svg id="svg" viewBox="0 0 680 340">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- Divisor central -->
+    <line x1="340" y1="10" x2="340" y2="330" stroke="#d3d1c7" stroke-width="0.5" stroke-dasharray="4 4"/>
+
+    <!-- VISTA LATERAL -->
+    <text x="20" y="22" font-size="11" font-weight="500" fill="#888780">Vista lateral  (d × y)</text>
+    <line id="le-x1" stroke="#b4b2a9" stroke-width="0.5" marker-end="url(#arr)"/>
+    <line id="le-y1" stroke="#b4b2a9" stroke-width="0.5" marker-end="url(#arr)"/>
+    <text id="le-lx" font-size="10" fill="#b4b2a9"></text>
+    <text id="le-ly" font-size="10" fill="#b4b2a9"></text>
+    <circle id="le-reach" fill="none" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3"/>
+    <line id="le-s1" stroke="#3B8BD4" stroke-width="5" stroke-linecap="round"/>
+    <line id="le-s2" stroke="#1D9E75" stroke-width="4" stroke-linecap="round"/>
+    <line id="le-s3" stroke="#EF9F27" stroke-width="3.5" stroke-linecap="round"/>
+    <circle id="le-j0" r="7" fill="#3B8BD4"/>
+    <circle id="le-j1" r="6" fill="#1D9E75"/>
+    <circle id="le-j2" r="5" fill="#EF9F27"/>
+    <circle id="le-jp" r="4" fill="#2c2c2a"/>
+    <text id="le-lj0" font-size="10" fill="#b4b2a9" text-anchor="middle"></text>
+    <text id="le-coord" font-size="11" fill="#2c2c2a" font-weight="500"></text>
+
+    <!-- VISTA SUPERIOR -->
+    <text x="354" y="22" font-size="11" font-weight="500" fill="#888780">Vista superior  (x × z)</text>
+    <line id="to-x1" stroke="#b4b2a9" stroke-width="0.5" marker-end="url(#arr)"/>
+    <line id="to-z1" stroke="#b4b2a9" stroke-width="0.5" marker-end="url(#arr)"/>
+    <text id="to-lx" font-size="10" fill="#b4b2a9"></text>
+    <text id="to-lz" font-size="10" fill="#b4b2a9"></text>
+    <circle id="to-reach" fill="none" stroke="#b4b2a9" stroke-width="0.5" stroke-dasharray="3 3"/>
+    <line id="to-proj" stroke="#888780" stroke-width="1" stroke-dasharray="3 3"/>
+    <circle id="to-jp" r="6" fill="#2c2c2a"/>
+    <path id="to-arc" fill="none" stroke="#D85A30" stroke-width="1.5"/>
+    <text id="to-arc-label" font-size="10" fill="#D85A30"></text>
+    <text id="to-coord" font-size="11" fill="#2c2c2a" font-weight="500"></text>
+  </svg>
+
+  <hr class="divider">
+
+  <div class="ctrl"><label>Base (θ_base)</label><input type="range" id="tb" min="0" max="180" value="45" step="1" oninput="draw()"><span id="vb">45°</span></div>
+  <div class="ctrl"><label>Braço (θ₁)</label><input type="range" id="t1" min="0" max="180" value="60" step="1" oninput="draw()"><span id="v1">60°</span></div>
+  <div class="ctrl"><label>Antebraço (θ₂)</label><input type="range" id="t2" min="0" max="180" value="50" step="1" oninput="draw()"><span id="v2">50°</span></div>
+  <div class="ctrl"><label>Garra (θ₃)</label><input type="range" id="t3" min="0" max="180" value="30" step="1" oninput="draw()"><span id="v3">30°</span></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#3B8BD4"></div>Braço (r₁=100)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Antebraço (r₂=80)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#EF9F27"></div>Garra (r₃=60)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#D85A30; height:2px;"></div>θ_base</div>
+  </div>
+
+  <div class="info" id="info"></div>
+</div>
+
+<footer>
+  Fórmulas: d = Σ rᵢ·cos(Σθ) &nbsp;|&nbsp; y = Σ rᵢ·sen(Σθ) &nbsp;|&nbsp; x = d·cos(θ_base) &nbsp;|&nbsp; z = d·sen(θ_base)
+</footer>
+
+<script>
+const R1=100, R2=80, R3=60;
+const LOX=155, LOY=240;
+const TOX=490, TOY=185;
+
+function toRad(d){ return d*Math.PI/180; }
+function r(n){ return Math.round(n); }
+
+function draw(){
+  const tb=+document.getElementById('tb').value;
+  const t1=+document.getElementById('t1').value;
+  const t2=+document.getElementById('t2').value;
+  const t3=+document.getElementById('t3').value;
+  document.getElementById('vb').textContent=tb+'°';
+  document.getElementById('v1').textContent=t1+'°';
+  document.getElementById('v2').textContent=t2+'°';
+  document.getElementById('v3').textContent=t3+'°';
+
+  const a1=toRad(t1), a12=toRad(t1+t2), a123=toRad(t1+t2+t3), ab=toRad(tb);
+
+  const d1=R1*Math.cos(a1), y1=R1*Math.sin(a1);
+  const d2=d1+R2*Math.cos(a12), y2=y1+R2*Math.sin(a12);
+  const d =d2+R3*Math.cos(a123), y=y2+R3*Math.sin(a123);
+  const X=d*Math.cos(ab), Z=d*Math.sin(ab);
+
+  function lx(v){ return LOX+v; }
+  function ly(v){ return LOY-v; }
+  function tx(v){ return TOX+v; }
+  function tz(v){ return TOY-v; }
+
+  setLine('le-x1', LOX-10, LOY, LOX+180, LOY);
+  setLine('le-y1', LOX, LOY+20, LOX, LOY-220);
+  setTxt('le-lx', LOX+183, LOY+4, 'd');
+  setTxt('le-ly', LOX+4, LOY-224, 'y');
+
+  const reach=R1+R2+R3;
+  setAttr('le-reach','cx',LOX); setAttr('le-reach','cy',LOY); setAttr('le-reach','r',reach);
+
+  setLine('le-s1', LOX, LOY, lx(d1), ly(y1));
+  setLine('le-s2', lx(d1), ly(y1), lx(d2), ly(y2));
+  setLine('le-s3', lx(d2), ly(y2), lx(d), ly(y));
+  setCirc('le-j0', LOX, LOY);
+  setCirc('le-j1', lx(d1), ly(y1));
+  setCirc('le-j2', lx(d2), ly(y2));
+  setCirc('le-jp', lx(d), ly(y));
+  setTxt('le-lj0', LOX, LOY+16, 'base');
+  let cx=lx(d)+8, cy=ly(y)-8;
+  if(cx>310) cx=lx(d)-50;
+  setTxt('le-coord', cx, cy, `d=${r(d)} y=${r(y)}`);
+
+  setLine('to-x1', TOX-10, TOY, TOX+160, TOY);
+  setLine('to-z1', TOX, TOY+20, TOX, TOY-150);
+  setTxt('to-lx', TOX+163, TOY+4, 'x');
+  setTxt('to-lz', TOX+4, TOY-153, 'z');
+  setAttr('to-reach','cx',TOX); setAttr('to-reach','cy',TOY); setAttr('to-reach','r',reach);
+  setLine('to-proj', TOX, TOY, tx(X), tz(Z));
+  setCirc('to-jp', tx(X), tz(Z));
+
+  const arcR=28;
+  const ax2=TOX+arcR*Math.cos(ab), ay2=TOY-arcR*Math.sin(ab);
+  document.getElementById('to-arc').setAttribute('d',
+    `M${TOX+arcR},${TOY} A${arcR},${arcR} 0 0 0 ${ax2},${ay2}`);
+  const midAng=toRad(tb/2);
+  setTxt('to-arc-label', TOX+(arcR+12)*Math.cos(midAng), TOY-(arcR+12)*Math.sin(midAng), tb+'°');
+
+  let tcx=tx(X)+8, tcy=tz(Z)-8;
+  if(tcx>650) tcx=tx(X)-55;
+  setTxt('to-coord', tcx, tcy, `x=${r(X)} z=${r(Z)}`);
+
+  document.getElementById('info').innerHTML =
+    `<b>Plano vertical:</b>  d = ${r(d)} unid. &nbsp;|&nbsp; y = ${r(y)} unid.<br>`+
+    `<b>Plano horizontal:</b>  x = d·cos(${tb}°) = <b>${r(X)}</b> &nbsp;&nbsp;z = d·sen(${tb}°) = <b>${r(Z)}</b><br>`+
+    `<b>Posição 3D da ponta:</b>  ( x = ${r(X)}, &nbsp;y = ${r(y)}, &nbsp;z = ${r(Z)} )`;
+}
+
+function setLine(id,x1,y1,x2,y2){
+  const e=document.getElementById(id);
+  e.setAttribute('x1',x1); e.setAttribute('y1',y1);
+  e.setAttribute('x2',x2); e.setAttribute('y2',y2);
+}
+function setCirc(id,cx,cy){
+  const e=document.getElementById(id);
+  e.setAttribute('cx',cx); e.setAttribute('cy',cy);
+}
+function setTxt(id,x,y,t){
+  const e=document.getElementById(id);
+  e.setAttribute('x',x); e.setAttribute('y',y);
+  e.textContent=t;
+}
+function setAttr(id,a,v){ document.getElementById(id).setAttribute(a,v); }
+
+draw();
+</script>
+</body>
+</html>
