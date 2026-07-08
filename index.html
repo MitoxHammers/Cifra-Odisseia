@@ -581,12 +581,12 @@
    ========================================================================= */
 
 const CONFIG = {
-  maxTime: 35,           // tempo "cheio" da barra no modo infinito (segundos)
-  startTime: 35,         // tempo inicial no modo infinito
+  maxTime: 32,           // tempo "cheio" da barra no modo infinito (segundos)
+  startTime: 32,         // tempo inicial no modo infinito
   correctGain: 3,      // segundos ganhos ao acertar (base)
   streakBonusStep: 0.25, // bônus extra de tempo por streak, com teto
   streakBonusCap: 3,     // teto do bônus de streak
-  wrongPenalty: 1,     // segundos perdidos ao errar
+  wrongPenalty: 1.5,     // segundos perdidos ao errar
   tickMs: 100,           // intervalo do loop do timer
   scorePerHit: 10,       // pontos base por acerto
   scorePerStreak: 2,     // pontos extra por streak
