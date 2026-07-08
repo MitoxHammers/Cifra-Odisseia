@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#20132a;
+    --panel:#111B2E;
+    --panel-edge: rgba(255,255,255,0.07);
+    --accent-volt:#FFD23F;
+    --accent-plasma:#FF4D6D;
+    --accent-cyan:#4CD9E8;
+    --accent-violet:#8B7FFF;
+    --text-primary:#EAF0FF;
+    --text-muted:#6B7A99;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(196, 39, 86, 0.3), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(179, 57, 170, 0.2), transparent 40%),
+      var(--bg-void);
+    color:var(--text-primary);
+    font-family:'Space Grotesk', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  #app{
+    width:100%;
+    max-width:640px;
+    position:relative;
+  }
+
+  /* ---------- Menu ---------- */
+  .title{
+    font-size:26px;
+    text-align:center;
+    letter-spacing:0.03em;
+    margin-bottom:6px;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--text-muted);
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    margin-bottom:24px;
+  }
+  .mode-select{
+    display:flex;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .mode-btn{
+    flex:1;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:12px;
+    padding:18px 12px;
+    color:var(--text-primary);
+    text-align:left;
+    font-weight:700;
+    font-size:15px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    cursor:pointer;
+  }
+  .mode-btn span{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:400;
+    font-size:11px;
+    color:var(--text-muted);
+  }
+  .mode-btn.active{
+    border-color:var(--accent-volt);
+    box-shadow:0 0 0 1px var(--accent-volt) inset;
+  }
+  .practice-config{
+    display:none;
+    flex-direction:column;
+    gap:16px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:18px;
+  }
+  .config-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-muted);
+    letter-spacing:0.08em;
+    margin-bottom:8px;
+    text-transform:uppercase;
+  }
+  .checkbox-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .checkbox-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    color:var(--text-primary);
+    cursor:pointer;
+  }
+  .checkbox-item input{
+    accent-color:var(--accent-cyan);
+    width:16px;
+    height:16px;
+  }
+  #difficultySelect{
+    width:100%;
+    background:#0D1626;
+    border:1px solid var(--panel-edge);
+    color:var(--text-primary);
+    padding:10px;
+    border-radius:8px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:14px;
+  }
+  .start-btn{
+    width:100%;
+    background:var(--accent-volt);
+    color:#1a1300;
+    font-weight:800;
+    padding:16px;
+    border-radius:12px;
+    font-size:16px;
+    letter-spacing:0.04em;
+    margin-bottom:22px;
+    cursor:pointer;
+  }
+  .leaderboard-preview{
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:12px;
+    padding:16px;
+  }
+  .leaderboard-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--text-muted);
+    letter-spacing:0.08em;
+    margin-bottom:10px;
+    text-transform:uppercase;
+  }
+  .leaderboard-empty{
+    color:var(--text-muted);
+    font-size:13px;
+    text-align:center;
+    padding:6px 0;
+  }
+  .leaderboard-row{
+    display:flex;
+    justify-content:space-between;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px solid var(--panel-edge);
+  }
+  .leaderboard-row:last-child{ border-bottom:none; }
+
+  /* ---------- HUD ---------- */
+  .hud{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:14px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color:var(--text-muted);
+    letter-spacing:0.06em;
+  }
+  .hud-stat span{
+    color:var(--text-primary);
+    font-weight:800;
+    font-size:16px;
+    margin-left:6px;
+  }
+
+  /* ---------- Timer (elemento de assinatura) ---------- */
+  .timer-wrap{
+    position:relative;
+    height:34px;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .timer-fill{
+    height:100%;
+    width:100%;
+    background:linear-gradient(90deg, var(--accent-cyan), var(--accent-volt));
+    transition:width 0.08s linear, background 0.3s ease;
+    -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+            mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+  }
+  .timer-fill.critical{
+    background:linear-gradient(90deg, var(--accent-plasma), #ff8a3d);
+    animation:pulseCritical 0.5s infinite;
+  }
+  @keyframes pulseCritical{
+    0%,100%{ filter:brightness(1); }
+    50%{ filter:brightness(1.4); }
+  }
+  .timer-digits{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:800;
+    font-size:16px;
+    letter-spacing:0.08em;
+    color:#04101f;
+    mix-blend-mode:screen;
+    text-shadow: 0 0 6px rgba(255,255,255,0.5);
+  }
+
+  /* ---------- Barra do modo prática ---------- */
+  .practice-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:6px;
+    padding:10px 14px;
+    margin-bottom:22px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    letter-spacing:0.06em;
+  }
+  .stop-btn{
+    background:rgba(255,77,109,0.15);
+    border:1px solid var(--accent-plasma);
+    color:var(--accent-plasma);
+    font-weight:700;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:12px;
+    cursor:pointer;
+  }
+
+  /* ---------- Palco da pergunta ---------- */
+  .stage-wrap{ position:relative; }
+  .stage{
+    background:var(--panel);
+    border:1px solid var(--panel-edge);
+    border-radius:14px;
+    padding:32px 24px;
+    min-height:260px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    text-align:center;
+    transition: box-shadow 0.15s ease;
+  }
+  .stage.flash-correct{ box-shadow: 0 0 0 3px var(--accent-cyan) inset, 0 0 30px rgba(76,217,232,0.35); }
+  .stage.flash-wrong{ box-shadow: 0 0 0 3px var(--accent-plasma) inset, 0 0 30px rgba(255,77,109,0.35); }
+
+  .question{
+    font-size:26px;
+    font-weight:700;
+    line-height:1.35;
+  }
+  .question .op-hint{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    font-weight:400;
+    color:var(--text-muted);
+    letter-spacing:0.08em;
+    margin-bottom:6px;
+    text-transform:uppercase;
+  }
+
+  button{
+    font-family:'Space Grotesk', sans-serif;
+    cursor:pointer;
+    border:none;
+    outline:none;
+  }
+
+  .options-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    width:100%;
+  }
+  .opt-btn{
+    background:#0D1626;
+    border:1px solid var(--panel-edge);
+    color:var(--text-primary);
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    font-size:19px;
+    padding:16px 8px;
+    border-radius:10px;
+    transition: transform 0.08s ease, border-color 0.15s ease;
+  }
+  .opt-btn:hover{ border-color:var(--accent-cyan); transform:translateY(-2px); }
+  .opt-btn .key-hint{
+    display:block;
+    font-size:10px;
+    color:var(--text-muted);
+    margin-top:4px;
+  }
+
+  .bool-buttons{ display:flex; gap:14px; width:100%; }
+  .bool-btn{ flex:1; padding:18px 8px; border-radius:10px; font-weight:700; font-size:18px; letter-spacing:0.04em; }
+  .bool-btn.certo{ background:rgba(76,217,232,0.12); border:1px solid var(--accent-cyan); color:var(--accent-cyan); }
+  .bool-btn.errado{ background:rgba(255,77,109,0.12); border:1px solid var(--accent-plasma); color:var(--accent-plasma); }
+  .bool-btn:hover{ transform:translateY(-2px); }
+
+  .pair-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; }
+  .pair-card{
+    background:#0D1626;
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
+    padding:22px 10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:20px;
+    font-weight:600;
+    cursor:pointer;
+    transition: transform 0.08s ease, border-color 0.15s ease;
+  }
+  .pair-card:hover{ border-color:var(--accent-volt); transform:translateY(-2px); }
+
+  /* ---------- Teclado numérico (dinâmica "digitar") ---------- */
+  .answer-display{
+    font-family:'JetBrains Mono', monospace;
+    font-size:32px;
+    font-weight:800;
+    color:var(--accent-volt);
+    min-height:44px;
+    letter-spacing:0.05em;
+  }
+  .keypad{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:8px;
+    width:100%;
+    max-width:220px;
+  }
+  .keypad-btn{
+    background:#0D1626;
+    border:1px solid var(--panel-edge);
+    color:var(--text-primary);
+    font-family:'JetBrains Mono', monospace;
+    font-size:20px;
+    font-weight:700;
+    padding:14px 0;
+    border-radius:10px;
+    transition: border-color 0.15s ease;
+  }
+  .keypad-btn:hover{ border-color:var(--accent-volt); }
+  .confirm-btn{
+    background:var(--accent-volt);
+    color:#1a1300;
+    font-weight:800;
+    padding:14px 26px;
+    border-radius:10px;
+    font-size:14px;
+    letter-spacing:0.04em;
+    width:100%;
+    max-width:220px;
+  }
+
+  /* ---------- Gráficos ---------- */
+  .graph-svg{ width:100%; max-width:300px; height:auto; margin:0 auto; }
+  .bar-c0{ fill:var(--accent-cyan); }
+  .bar-c1{ fill:var(--accent-volt); }
+  .bar-c2{ fill:var(--accent-violet); }
+  .graph-value{ font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:600; fill:var(--text-primary); }
+  .graph-label{ font-family:'JetBrains Mono', monospace; font-size:11px; fill:var(--text-muted); }
+  .graph-prompt{ font-size:18px; font-weight:700; }
+
+  /* ---------- Overlay de fim de jogo ---------- */
+  .overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(6,10,20,0.94);
+    border-radius:14px;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:20px;
+    overflow-y:auto;
+  }
+  .overlay.show{ display:flex; }
+  .overlay-card{ width:100%; }
+  .overlay-card h1{ font-size:26px; letter-spacing:0.04em; color:var(--accent-plasma); margin-bottom:10px; }
+  .overlay-card p{ color:var(--text-muted); margin:4px 0; font-family:'JetBrains Mono', monospace; font-size:13px; }
+  .overlay-card p span{ color:var(--text-primary); font-weight:800; font-size:15px; }
+
+  #registerBlock{ margin-top:16px; }
+  #registerForm{ margin-top:14px; display:flex; gap:8px; }
+  #registerForm input{
+    flex:1;
+    background:#0D1626;
+    border:1px solid var(--panel-edge);
+    border-radius:8px;
+    color:var(--text-primary);
+    padding:10px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:14px;
+  }
+  .confirm-btn-sm{
+    background:var(--accent-cyan);
+    color:#03161b;
+    font-weight:800;
+    padding:0 16px;
+    border-radius:8px;
+    font-size:13px;
+  }
+  .leaderboard-list{ margin-top:14px; text-align:left; }
+
+  .overlay-actions{ display:flex; gap:10px; margin-top:20px; }
+  .overlay-actions button{ flex:1; }
+  #restartBtn{
+    background:var(--accent-cyan);
+    color:#03161b;
+    font-weight:800;
+    padding:14px 10px;
+    border-radius:10px;
+    font-size:14px;
+    letter-spacing:0.03em;
+  }
+  .secondary-btn{
+    background:transparent;
+    border:1px solid var(--panel-edge);
+    color:var(--text-primary);
+    font-weight:700;
+    padding:14px 10px;
+    border-radius:10px;
+    font-size:13px;
+  }
+
+  .footer-hint{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:12px;
+    margin-top:14px;
+    font-family:'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ======================= TELA DE MENU ======================= -->
+  <div id="menuScreen">
+    <h1 class="title">CIFRA ODISSEIA</h1>
+    <p class="subtitle">Escolha o modo de jogo</p>
+
+    <div class="mode-select">
+      <button class="mode-btn active" data-mode="infinite" type="button">
+        MODO INFINITO
+        <span>Contra o tempo — acerte para continuar</span>
+      </button>
+      <button class="mode-btn" data-mode="practice" type="button">
+        MODO PRÁTICA
+        <span>Sem pressa — você escolhe tudo</span>
+      </button>
+    </div>
+
+    <div class="practice-config" id="practiceConfig">
+      <div>
+        <div class="config-label">Dinâmicas nesta partida</div>
+        <div class="checkbox-grid" id="modeCheckboxes"><!-- gerado via JS --></div>
+      </div>
+      <div>
+        <div class="config-label">Dificuldade</div>
+        <select id="difficultySelect">
+          <option value="2">Fácil</option>
+          <option value="4" selected>Médio</option>
+          <option value="6">Difícil</option>
+          <option value="8">Extremo</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="start-btn" id="startBtn" type="button">COMEÇAR</button>
+
+    <div class="leaderboard-preview" id="leaderboardPreview"><!-- gerado via JS --></div>
+  </div>
+
+  <!-- ======================= TELA DE JOGO ======================= -->
+  <div id="gameScreen" style="display:none">
+    <div class="hud">
+      <div class="hud-stat">PONTOS <span id="score">0</span></div>
+      <div class="hud-stat">SEQUÊNCIA <span id="streak">0</span></div>
+      <div class="hud-stat">NÍVEL <span id="level">1</span></div>
+    </div>
+
+    <div class="timer-wrap" id="timerWrap">
+      <div class="timer-fill" id="timerFill"></div>
+      <div class="timer-digits" id="timerDigits">12.0s</div>
+    </div>
+
+    <div class="practice-bar" id="practiceBar" style="display:none">
+      <span>MODO PRÁTICA · SEM TEMPO</span>
+      <button class="stop-btn" id="stopPracticeBtn" type="button">PARAR</button>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage" id="stage"><!-- pergunta atual renderizada aqui --></div>
+
+      <div class="overlay" id="overlay">
+        <div class="overlay-card">
+          <h1 id="overlayTitle">TEMPO ESGOTADO</h1>
+          <p>Pontuação final: <span id="finalScore">0</span></p>
+          <p>Melhor sequência: <span id="finalStreak">0</span></p>
+
+          <div id="registerBlock">
+            <button class="secondary-btn" id="showRegisterBtn" type="button" style="width:100%">REGISTRAR NO PLACAR</button>
+          </div>
+
+          <div id="registerForm" style="display:none">
+            <input id="nameInput" type="text" maxlength="14" placeholder="Seu nome">
+            <button class="confirm-btn-sm" id="confirmRegisterBtn" type="button">SALVAR</button>
+          </div>
+
+          <div class="leaderboard-list" id="leaderboardList" style="display:none"></div>
+
+          <div class="overlay-actions">
+            <button id="restartBtn" type="button">JOGAR NOVAMENTE</button>
+            <button class="secondary-btn" id="menuBtn" type="button">MENU</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="footer-hint">Teclado físico: 1-5 escolhe opção · C/E Certo ou Errado · números + Enter no modo digitar</div> !-->
+  </div>
+
+</div>
+
+<script>
+/* =========================================================================
+   CÁLCULO CONTRA O RELÓGIO
+   -------------------------------------------------------------------------
+   Estrutura pensada para ser fácil de estender:
+
+   1. CONFIG          -> todos os números de balanceamento do jogo.
+   2. buildExpression -> gera uma conta (expressão + valor) de acordo com o nível.
+   3. MODES[]         -> cada "dinâmica" tem um generate(level) que devolve um
+                         objeto de pergunta com um campo `type`.
+   4. RENDERERS{}     -> uma função de desenho por `type` de pergunta.
+
+   PARA CRIAR UMA DINÂMICA NOVA:
+     a) Escreva uma função generate(level) que devolva, por exemplo:
+          { type:'choice', text:'...', options:[...], correctIndex:0 }
+        Reaproveite um `type` já existente (choice/boolean/input/pair/graph) OU
+     b) Crie um novo `type` e adicione uma função em RENDERERS com o mesmo
+        nome do type, recebendo (question, onAnswer).
+     c) Adicione { name:'meuModo', generate: minhaFuncao } no array MODES e
+        um rótulo em MODE_LABELS (para aparecer no Modo Prática).
+   Pronto — o jogo já vai sortear sua dinâmica automaticamente.
+   ========================================================================= */
+
+const CONFIG = {
+  maxTime: 35,           // tempo "cheio" da barra no modo infinito (segundos)
+  startTime: 35,         // tempo inicial no modo infinito
+  correctGain: 3,      // segundos ganhos ao acertar (base)
+  streakBonusStep: 0.25, // bônus extra de tempo por streak, com teto
+  streakBonusCap: 3,     // teto do bônus de streak
+  wrongPenalty: 1,     // segundos perdidos ao errar
+  tickMs: 100,           // intervalo do loop do timer
+  scorePerHit: 10,       // pontos base por acerto
+  scorePerStreak: 2,     // pontos extra por streak
+  levelEvery: 60,        // a cada X pontos, sobe 1 nível (modo infinito)
+  leaderboardMax: 32,     // quantas entradas o placar guarda
+};
+
+// ---------------------------------------------------------------------
+// Utilidades numéricas
+// ---------------------------------------------------------------------
+function randInt(min, max){
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function shuffle(arr){
+  const a = [...arr];
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function uniqueDistractors(correct, count, spread){
+  const set = new Set([correct]);
+  const out = [];
+  while(out.length < count){
+    const delta = randInt(-spread, spread) || 1;
+    const candidate = correct + delta;
+    if(!set.has(candidate) && candidate >= 0){
+      set.add(candidate);
+      out.push(candidate);
+    }
+  }
+  return out;
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---------------------------------------------------------------------
+// Gerador de expressões — a dificuldade sobe junto com `level`
+// ---------------------------------------------------------------------
+function buildExpression(level){
+  let ops, range;
+
+  if(level <= 2){ ops = ['+', '-']; range = 20; }
+  else if(level <= 4){ ops = ['+', '-', '×']; range = 50; }
+  else if(level <= 6){ ops = ['+', '-', '×', '÷']; range = 12; }
+  else { ops = ['+', '-', '×', '÷', '2steps']; range = 15; }
+
+  const op = ops[randInt(0, ops.length - 1)];
+
+  if(op === '2steps'){
+    const a = randInt(2, range);
+    const b = randInt(2, 10);
+    const c = randInt(2, 10);
+    return { expr: `${a} + ${b} × ${c}`, value: a + b * c };
+  }
+  if(op === '+'){
+    const a = randInt(1, range), b = randInt(1, range);
+    return { expr: `${a} + ${b}`, value: a + b };
+  }
+  if(op === '-'){
+    let a = randInt(1, range), b = randInt(1, range);
+    if(b > a) [a, b] = [b, a];
+    return { expr: `${a} - ${b}`, value: a - b };
+  }
+  if(op === '×'){
+    const a = randInt(2, Math.min(range, 12)), b = randInt(2, 12);
+    return { expr: `${a} × ${b}`, value: a * b };
+  }
+  if(op === '÷'){
+    const b = randInt(2, 12), value = randInt(2, 12);
+    return { expr: `${b * value} ÷ ${b}`, value };
+  }
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica 1 — múltipla escolha
+// ---------------------------------------------------------------------
+function genChoice(level){
+  const { expr, value } = buildExpression(level);
+  const distractors = uniqueDistractors(value, 3, Math.max(4, level * 2));
+  const options = shuffle([value, ...distractors]);
+  return {
+    type: 'choice',
+    hint: 'MÚLTIPLA ESCOLHA',
+    text: `Quanto é ${expr}?`,
+    options: options.map(String),
+    correctIndex: options.indexOf(value),
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica 2 — verdadeiro ou falso
+// ---------------------------------------------------------------------
+function genBoolean(level){
+  const { expr, value } = buildExpression(level);
+  const isTrueStatement = Math.random() < 0.5;
+  const shown = isTrueStatement ? value : value + (randInt(1, 5) * (Math.random() < 0.5 ? 1 : -1));
+  return {
+    type: 'boolean',
+    hint: 'CERTO OU ERRADO',
+    text: `${expr} = ${shown}`,
+    correctValue: isTrueStatement,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica 3 — digitar o resultado (teclado numérico próprio,
+// evita abrir o teclado nativo do celular)
+// ---------------------------------------------------------------------
+function genInput(level){
+  const { expr, value } = buildExpression(level);
+  return {
+    type: 'input',
+    hint: 'DIGITE O RESULTADO',
+    text: `${expr} = ?`,
+    correctValue: value,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica 4 — comparação (qual expressão é maior)
+// ---------------------------------------------------------------------
+function genPair(level){
+  let a = buildExpression(level);
+  let b = buildExpression(level);
+  let guard = 0;
+  while(a.value === b.value && guard < 8){ b = buildExpression(level); guard++; }
+  return {
+    type: 'pair',
+    hint: 'QUAL É MAIOR?',
+    text: 'Clique na expressão com o MAIOR resultado',
+    options: [a.expr, b.expr],
+    correctIndex: a.value > b.value ? 0 : 1,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica 5 — sequência numérica (reaproveita o renderer 'choice')
+// ---------------------------------------------------------------------
+function genSequence(level){
+  const step = randInt(2, level + 3);
+  const start = randInt(1, 12);
+  const rand = Math.random();
+  const aritmetic = rand < .5;
+ 
+  if (level <= 4) {
+     seq = [start, start + step, start + 2 * step, start + 3 * step];
+     next = start + 4 * step;
+  }
+  else if (rand < .5) {
+    seq = [start * 2, start * Math.pow(2,2), start * Math.pow(2,3)];
+    next = start * Math.pow(2,4);
+  }
+  else {
+     seq = [start, start + step, start + 2 * step, start + 3 * step];
+     next = start + 4 * step;
+  }
+
+  const distractors = uniqueDistractors(next, 3, step);
+  const options = shuffle([next, ...distractors]);
+  return {
+    type: 'choice',
+    hint: 'COMPLETE A SEQUÊNCIA',
+    text: `${seq.join(', ')}, ?`,
+    options: options.map(String),
+    correctIndex: options.indexOf(next),
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica 6 — leitura de gráfico (barras geradas em SVG)
+// ---------------------------------------------------------------------
+const GRAPH_COLOR_CLASSES = ['bar-c0', 'bar-c1', 'bar-c2'];
+
+function genGraph(level){
+  const barsCount = randInt(3, 5);
+  const labels = ['A', 'B', 'C', 'D', 'E'].slice(0, barsCount);
+  const maxRange = 10 + level * 4;
+  const values = labels.map(() => randInt(3, maxRange));
+
+  const subType = ['max', 'min', 'sum', 'diff'][randInt(0, 3)];
+
+  const chartHeight = 100;
+  const maxVal = Math.max(...values);
+  const barWidth = 44;
+  const gap = 14;
+  const chartWidth = barsCount * barWidth + (barsCount - 1) * gap;
+
+  const bars = values.map((v, i) => {
+    const barH = Math.max(6, (v / maxVal) * chartHeight);
+    const x = i * (barWidth + gap);
+    const y = chartHeight - barH + 14;
+    return `
+      <rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="5" class="graph-bar ${GRAPH_COLOR_CLASSES[i % 3]}"></rect>
+      <text x="${x + barWidth / 2}" y="${y - 6}" text-anchor="middle" class="graph-value">${v}</text>
+      <text x="${x + barWidth / 2}" y="${chartHeight + 30}" text-anchor="middle" class="graph-label">${labels[i]}</text>
+    `;
+  }).join('');
+
+  const svg = `<svg viewBox="0 0 ${chartWidth} ${chartHeight + 36}" class="graph-svg">${bars}</svg>`;
+
+  let text, options, correctIndex;
+
+  if(subType === 'max' || subType === 'min'){
+    const targetVal = subType === 'max' ? Math.max(...values) : Math.min(...values);
+    const targetLabel = labels[values.indexOf(targetVal)];
+    const shuffledLabels = shuffle(labels);
+    options = shuffledLabels;
+    correctIndex = shuffledLabels.indexOf(targetLabel);
+    text = subType === 'max' ? 'Qual coluna tem o MAIOR valor?' : 'Qual coluna tem o MENOR valor?';
+  } else {
+    const i1 = randInt(0, barsCount - 1);
+    let i2 = randInt(0, barsCount - 1);
+    let guard = 0;
+    while(i2 === i1 && guard < 8){ i2 = randInt(0, barsCount - 1); guard++; }
+    const v1 = values[i1], v2 = values[i2];
+    const correctVal = subType === 'sum' ? v1 + v2 : Math.abs(v1 - v2);
+    const distractors = uniqueDistractors(correctVal, 3, Math.max(4, level * 2));
+    const opts = shuffle([correctVal, ...distractors]);
+    options = opts.map(String);
+    correctIndex = opts.indexOf(correctVal);
+    text = subType === 'sum'
+      ? `Qual a SOMA das colunas ${labels[i1]} e ${labels[i2]}?`
+      : `Qual a DIFERENÇA entre as colunas ${labels[i1]} e ${labels[i2]}?`;
+  }
+
+  return { type: 'graph', hint: 'LEITURA DE GRÁFICO', svg, text, options, correctIndex };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica — equação básica (reaproveita o renderer 'input', teclado numérico)
+// ---------------------------------------------------------------------
+function genEquation(level){
+  const tiers = level <= 2 ? { ops: ['+', '-'], max: 20 }
+              : level <= 4 ? { ops: ['+', '-', '×'], max: 30 }
+              : { ops: ['+', '-', '×', '÷'], max: 12 };
+
+  const op = tiers.ops[randInt(0, tiers.ops.length - 1)];
+  const hideLeft = Math.random() < 0.5; // qual lado da equação vira "x"
+  let a, b, c, answer, equationText;
+
+  if(op === '+'){
+    a = randInt(1, tiers.max); b = randInt(1, tiers.max); c = a + b;
+    equationText = hideLeft ? `x + ${b} = ${c}` : `${a} + x = ${c}`;
+    answer = hideLeft ? a : b;
+  } else if(op === '-'){
+    a = randInt(2, tiers.max); b = randInt(1, a - 1); c = a - b; // garante resultado positivo
+    equationText = hideLeft ? `x - ${b} = ${c}` : `${a} - x = ${c}`;
+    answer = hideLeft ? a : b;
+  } else if(op === '×'){
+    a = randInt(2, Math.min(tiers.max, 12)); b = randInt(2, 12); c = a * b;
+    equationText = hideLeft ? `x × ${b} = ${c}` : `${a} × x = ${c}`;
+    answer = hideLeft ? a : b;
+  } else { // ÷
+    b = randInt(2, 12); const resultado = randInt(2, 12); a = b * resultado; c = resultado;
+    equationText = hideLeft ? `x ÷ ${b} = ${c}` : `${a} ÷ x = ${c}`;
+    answer = hideLeft ? a : b;
+  }
+
+  return {
+    type: 'input',
+    hint: 'EQUAÇÃO BÁSICA',
+    text: `${equationText}, qual o valor de x?`,
+    correctValue: answer,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica — posição na reta numérica (reaproveita o renderer 'boolean')
+// ---------------------------------------------------------------------
+function genNumberLine(level){
+  const spread = 10 + level * 3;
+  const min = -Math.floor(spread / 2);
+  const max = min + spread;
+
+  let x = randInt(min, max);
+  let y = randInt(min, max);
+  let guard = 0;
+  while(x === y && guard < 8){ y = randInt(min, max); guard++; }
+
+  const width = 280;
+  const toPx = (v) => ((v - min) / (max - min)) * (width - 20) + 10;
+
+  const tickStep = Math.max(1, Math.round(spread / 6));
+  let ticks = '';
+  for(let t = min; t <= max; t += tickStep){
+    ticks += `
+      <line x1="${toPx(t)}" y1="26" x2="${toPx(t)}" y2="34" stroke="var(--panel-edge)" stroke-width="2"></line>
+      <text x="${toPx(t)}" y="50" text-anchor="middle" class="graph-label">${t}</text>`;
+  }
+
+  const svg = `
+    <svg viewBox="0 0 ${width} 90" class="graph-svg">
+      <line x1="10" y1="30" x2="${width - 10}" y2="30" stroke="var(--panel-edge)" stroke-width="2"></line>
+      ${ticks}
+      <circle cx="${toPx(x)}" cy="30" r="6" class="bar-c0"></circle>
+      <text x="${toPx(x)}" y="16" text-anchor="middle" class="graph-value">X</text>
+      <circle cx="${toPx(y)}" cy="30" r="6" class="bar-c1"></circle>
+      <text x="${toPx(y)}" y="16" text-anchor="middle" class="graph-value">Y</text>
+    </svg>`;
+
+  const askGreater = Math.random() < 0.5;
+  const correctValue = askGreater ? x > y : x < y;
+
+  return {
+    type: 'boolean',
+    hint: 'POSIÇÃO NA RETA NUMÉRICA',
+    text: `${svg}<div class="graph-prompt" style="margin-top:8px">X é ${askGreater ? 'MAIOR' : 'MENOR'} que Y?</div>`,
+    correctValue,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Dinâmica — porcentagem + estatística (reaproveita o renderer 'choice')
+// ---------------------------------------------------------------------
+function genPercentage(level){
+  const subType = ['percentOf', 'percentChange', 'average'][randInt(0, 2)];
+  const percentOptions = [5, 10, 15, 20, 25, 50, 75]; // todos divisíveis por 5 -> resultado sempre inteiro com n múltiplo de 20
+
+  if(subType === 'percentOf'){
+    const p = percentOptions[randInt(0, percentOptions.length - 1)];
+    const n = randInt(1, 4 + level) * 20;
+    const value = (n * p) / 100;
+    const options = shuffle([value, ...uniqueDistractors(value, 3, Math.max(5, value * 0.3))]);
+    return {
+      type: 'choice', hint: 'PORCENTAGEM',
+      text: `Quanto é ${p}% de ${n}?`,
+      options: options.map(String), correctIndex: options.indexOf(value),
+    };
+  }
+
+  if(subType === 'percentChange'){
+    const p = percentOptions[randInt(0, percentOptions.length - 1)];
+    const n = randInt(1, 4 + level) * 20;
+    const increase = Math.random() < 0.5;
+    const value = increase ? n + (n * p) / 100 : n - (n * p) / 100;
+    const options = shuffle([value, ...uniqueDistractors(value, 3, Math.max(5, value * 0.2))]);
+    return {
+      type: 'choice', hint: 'PORCENTAGEM',
+      text: `${n} ${increase ? 'aumentado' : 'reduzido'} em ${p}% é igual a quanto?`,
+      options: options.map(String), correctIndex: options.indexOf(value),
+    };
+  }
+
+  // average -> mescla com estatística: média de uma pequena lista
+  const count = randInt(2, 3);
+  const values = Array.from({ length: count }, () => randInt(1, 1 + level * 2));
+  const remainder = values.reduce((a, v) => a + v, 0) % count;
+  if(remainder !== 0) values[count - 1] += (count - remainder); // força média inteira
+  const average = values.reduce((a, v) => a + v, 0) / count;
+  const options = shuffle([average, ...uniqueDistractors(average, 3, Math.max(3, level))]);
+  return {
+    type: 'choice', hint: 'ESTATÍSTICA — MÉDIA',
+    text: `Qual a média destes valores? ${values.join(', ')}`,
+    options: options.map(String), correctIndex: options.indexOf(average),
+  };
+}
+
+// Lista de dinâmicas ativas e seus rótulos (usados no Modo Prática)
+const MODES = [
+  { name: 'choice',   generate: genChoice },
+  { name: 'boolean',  generate: genBoolean },
+  { name: 'input',    generate: genInput },
+  { name: 'pair',     generate: genPair },
+  { name: 'sequence', generate: genSequence },
+  { name: 'graph',    generate: genGraph },
+  { name: 'equation',   generate: genEquation },
+  { name: 'numberline', generate: genNumberLine },
+  { name: 'percentage', generate: genPercentage },
+];
+
+const MODE_LABELS = {
+  choice: 'Múltipla escolha',
+  boolean: 'Certo ou errado',
+  input: 'Digitar resultado',
+  pair: 'Comparação',
+  sequence: 'Sequência',
+  graph: 'Gráficos',
+  equation: 'Equação básica',
+  numberline: 'Reta numérica',
+  percentage: 'Porcentagem/Estatística',
+};
+
+// ---------------------------------------------------------------------
+// Renderizadores — uma função por `type` de pergunta
+// ---------------------------------------------------------------------
+const stage = document.getElementById('stage');
+
+function questionShell(hint, text, bodyHtml){
+  return `
+    <div class="question"><span class="op-hint">${hint}</span>${text}</div>
+    ${bodyHtml}
+  `;
+}
+
+const RENDERERS = {
+  choice(q, onAnswer){
+    stage.innerHTML = questionShell(q.hint, q.text, `
+      <div class="options-grid">
+        ${q.options.map((opt, i) => `
+          <button class="opt-btn" data-index="${i}">
+            ${opt}
+            <span class="key-hint">tecla ${i + 1}</span>
+          </button>
+        `).join('')}
+      </div>
+    `);
+    stage.querySelectorAll('.opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => onAnswer(Number(btn.dataset.index) === q.correctIndex));
+    });
+  },
+
+  boolean(q, onAnswer){
+    stage.innerHTML = questionShell(q.hint, q.text, `
+      <div class="bool-buttons">
+        <button class="bool-btn certo" data-val="true">CERTO</button>
+        <button class="bool-btn errado" data-val="false">ERRADO</button>
+      </div>
+    `);
+    stage.querySelectorAll('.bool-btn').forEach(btn => {
+      btn.addEventListener('click', () => onAnswer((btn.dataset.val === 'true') === q.correctValue));
+    });
+  },
+
+  input(q, onAnswer){
+    stage.innerHTML = questionShell(q.hint, q.text, `
+      <div class="answer-display" id="answerDisplay">0</div>
+      <div class="keypad">
+        ${['7','8','9','4','5','6','1','2','3','.','0','back'].map(k => `
+          <button type="button" class="keypad-btn" data-key="${k}">${k === 'back' ? '⌫' : k}</button>
+        `).join('')}
+      </div>
+      <button type="button" id="confirmBtn" class="confirm-btn">CONFIRMAR</button>
+    `);
+
+    let buffer = '';
+    const display = document.getElementById('answerDisplay');
+    const updateDisplay = () => { display.textContent = buffer.length ? buffer : '0'; };
+
+    function append(ch){
+      if(ch === '.' && buffer.includes('.')) return;
+      if(buffer.length >= 9) return;
+      buffer += ch;
+      updateDisplay();
+    }
+    function back(){ buffer = buffer.slice(0, -1); updateDisplay(); }
+    function submit(){
+      const val = parseFloat(buffer);
+      onAnswer(!Number.isNaN(val) && Math.abs(val - q.correctValue) < 0.001);
+    }
+
+    // Expõe os handlers para o atalho de teclado físico (ver keydown global)
+    state.inputHandlers = { append, back, submit };
+
+    stage.querySelectorAll('.keypad-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.key;
+        if(key === 'back') back(); else append(key);
+      });
+    });
+    document.getElementById('confirmBtn').addEventListener('click', submit);
+  },
+
+  pair(q, onAnswer){
+    stage.innerHTML = questionShell(q.hint, q.text, `
+      <div class="pair-grid">
+        ${q.options.map((opt, i) => `<div class="pair-card" data-index="${i}">${opt}</div>`).join('')}
+      </div>
+    `);
+    stage.querySelectorAll('.pair-card').forEach(card => {
+      card.addEventListener('click', () => onAnswer(Number(card.dataset.index) === q.correctIndex));
+    });
+  },
+
+  graph(q, onAnswer){
+    stage.innerHTML = `
+      <div class="question"><span class="op-hint">${q.hint}</span></div>
+      ${q.svg}
+      <div class="graph-prompt">${q.text}</div>
+      <div class="options-grid">
+        ${q.options.map((opt, i) => `
+          <button class="opt-btn" data-index="${i}">
+            ${opt}
+            <span class="key-hint">tecla ${i + 1}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    stage.querySelectorAll('.opt-btn').forEach(btn => {
+      btn.addEventListener('click', () => onAnswer(Number(btn.dataset.index) === q.correctIndex));
+    });
+  },
+};
+
+// ---------------------------------------------------------------------
+// Estado do jogo
+// ---------------------------------------------------------------------
+const state = {
+  mode: 'infinite',       // 'infinite' | 'practice'
+  activeModes: MODES,     // dinâmicas habilitadas nesta partida
+  fixedLevel: false,      // true no modo prática (dificuldade escolhida não muda)
+  score: 0,
+  streak: 0,
+  bestStreak: 0,
+  level: 1,
+  time: CONFIG.startTime,
+  running: false,
+  currentQuestion: null,
+  timerHandle: null,
+  inputHandlers: null,
+};
+
+let leaderboard = []; // placar em memória, válido durante esta sessão do navegador
+
+// Elementos
+const timerFill = document.getElementById('timerFill');
+const timerDigits = document.getElementById('timerDigits');
+const scoreEl = document.getElementById('score');
+const streakEl = document.getElementById('streak');
+const levelEl = document.getElementById('level');
+const overlay = document.getElementById('overlay');
+
+function updateHUD(){
+  scoreEl.textContent = state.score;
+  streakEl.textContent = state.streak;
+  levelEl.textContent = state.level;
+
+  if(state.mode === 'infinite'){
+    const pct = Math.max(0, Math.min(100, (state.time / CONFIG.maxTime) * 100));
+    timerFill.style.width = pct + '%';
+    timerDigits.textContent = Math.max(0, state.time).toFixed(1) + 's';
+    timerFill.classList.toggle('critical', pct <= 30);
+  }
+}
+
+function flash(kind){
+  stage.classList.remove('flash-correct', 'flash-wrong');
+  void stage.offsetWidth;
+  stage.classList.add(kind === 'correct' ? 'flash-correct' : 'flash-wrong');
+  setTimeout(() => stage.classList.remove('flash-correct', 'flash-wrong'), 180);
+}
+
+function updateLevel(){
+  if(state.fixedLevel) return; // modo prática usa dificuldade fixa escolhida no menu
+  state.level = 1 + Math.floor(state.score / CONFIG.levelEvery);
+}
+
+function nextQuestion(){
+  state.inputHandlers = null;
+  const pool = state.activeModes.length ? state.activeModes : MODES;
+  const mode = pool[randInt(0, pool.length - 1)];
+  state.currentQuestion = mode.generate(state.level);
+  RENDERERS[state.currentQuestion.type](state.currentQuestion, handleAnswer);
+}
+
+function handleAnswer(isCorrect){
+  if(!state.running) return;
+
+  if(isCorrect){
+    state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    state.score += CONFIG.scorePerHit + state.streak * CONFIG.scorePerStreak;
+    if(state.mode === 'infinite'){
+      const bonus = Math.min(state.streak * CONFIG.streakBonusStep, CONFIG.streakBonusCap);
+      state.time = Math.min(CONFIG.maxTime, state.time + CONFIG.correctGain + bonus);
+    }
+    flash('correct');
+  } else {
+    state.streak = 0;
+    if(state.mode === 'infinite') state.time -= CONFIG.wrongPenalty;
+    flash('wrong');
+  }
+
+  updateLevel();
+  updateHUD();
+
+  if(state.mode === 'infinite' && state.time <= 0){
+    endGame('timeout');
+    return;
+  }
+  nextQuestion();
+}
+
+function tick(){
+  if(!state.running || state.mode !== 'infinite') return;
+  state.time -= CONFIG.tickMs / 1000;
+  if(state.time <= 0){
+    state.time = 0;
+    updateHUD();
+    endGame('timeout');
+    return;
+  }
+  updateHUD();
+}
+
+// ---------------------------------------------------------------------
+// Fim de jogo / placar
+// ---------------------------------------------------------------------
+const OVERLAY_TITLES = { timeout: 'TEMPO ESGOTADO', stopped: 'FIM DA PRÁTICA' };
+
+function endGame(reason){
+  state.running = false;
+  clearInterval(state.timerHandle);
+
+  document.getElementById('overlayTitle').textContent = OVERLAY_TITLES[reason] || 'FIM DE JOGO';
+  document.getElementById('finalScore').textContent = state.score;
+  document.getElementById('finalStreak').textContent = state.bestStreak;
+
+  document.getElementById('registerBlock').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('nameInput').value = '';
+  document.getElementById('leaderboardList').style.display = 'none';
+
+  overlay.classList.add('show');
+}
+
+function renderLeaderboardRows(entries){
+  return entries.map((e, i) => `
+    <div class="leaderboard-row">
+      <span>${i + 1}. ${escapeHtml(e.name)} <small style="color:var(--text-muted)">(${e.mode === 'practice' ? 'Prática' : 'Infinito'})</small></span>
+      <span>${e.score} pts</span>
+    </div>
+  `).join('');
+}
+
+function renderLeaderboardList(){
+  const el = document.getElementById('leaderboardList');
+  el.style.display = 'block';
+  el.innerHTML = leaderboard.length
+    ? renderLeaderboardRows(leaderboard)
+    : '<div class="leaderboard-empty">Nenhuma pontuação registrada ainda.</div>';
+}
+
+function renderLeaderboardPreview(){
+  const el = document.getElementById('leaderboardPreview');
+  if(leaderboard.length === 0){
+    el.innerHTML = '<div class="leaderboard-empty">Nenhuma pontuação registrada ainda nesta sessão.</div>';
+    return;
+  }
+  el.innerHTML =
+    '<div class="leaderboard-title">MELHORES DESTA SESSÃO</div>' +
+    renderLeaderboardRows(leaderboard.slice(0, 5));
+}
+
+// ---------------------------------------------------------------------
+// Início / reinício / menu
+// ---------------------------------------------------------------------
+function startGame(mode, config){
+  state.mode = mode;
+  if(mode === 'practice'){
+    const chosen = MODES.filter(m => config.selectedNames.includes(m.name));
+    state.activeModes = chosen.length ? chosen : MODES;
+    state.level = config.level;
+    state.fixedLevel = true;
+  } else {
+    state.activeModes = MODES;
+    state.level = 1;
+    state.fixedLevel = false;
+  }
+
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.time = CONFIG.startTime;
+  state.running = true;
+  clearInterval(state.timerHandle);
+
+  document.getElementById('menuScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('timerWrap').style.display = mode === 'infinite' ? 'block' : 'none';
+  document.getElementById('practiceBar').style.display = mode === 'practice' ? 'flex' : 'none';
+  overlay.classList.remove('show');
+
+  updateHUD();
+  nextQuestion();
+
+  if(mode === 'infinite'){
+    state.timerHandle = setInterval(tick, CONFIG.tickMs);
+  }
+}
+
+function playAgain(){
+  overlay.classList.remove('show');
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.time = CONFIG.startTime;
+  state.running = true;
+  updateHUD();
+  nextQuestion();
+  clearInterval(state.timerHandle);
+  if(state.mode === 'infinite'){
+    state.timerHandle = setInterval(tick, CONFIG.tickMs);
+  }
+}
+
+function goToMenu(){
+  overlay.classList.remove('show');
+  clearInterval(state.timerHandle);
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('menuScreen').style.display = 'block';
+  renderLeaderboardPreview();
+}
+
+// ---------------------------------------------------------------------
+// Menu — construção dos checkboxes e ligação dos botões
+// ---------------------------------------------------------------------
+function buildModeCheckboxes(){
+  const container = document.getElementById('modeCheckboxes');
+  container.innerHTML = MODES.map(m => `
+    <label class="checkbox-item">
+      <input type="checkbox" value="${m.name}" checked>
+      ${MODE_LABELS[m.name] || m.name}
+    </label>
+  `).join('');
+}
+
+let selectedMenuMode = 'infinite';
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedMenuMode = btn.dataset.mode;
+    document.getElementById('practiceConfig').style.display = selectedMenuMode === 'practice' ? 'flex' : 'none';
+  });
+});
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  if(selectedMenuMode === 'practice'){
+    const selectedNames = Array.from(document.querySelectorAll('#modeCheckboxes input:checked')).map(cb => cb.value);
+    const level = Number(document.getElementById('difficultySelect').value);
+    startGame('practice', { selectedNames, level });
+  } else {
+    startGame('infinite', {});
+  }
+});
+
+document.getElementById('stopPracticeBtn').addEventListener('click', () => endGame('stopped'));
+document.getElementById('restartBtn').addEventListener('click', playAgain);
+document.getElementById('menuBtn').addEventListener('click', goToMenu);
+
+document.getElementById('showRegisterBtn').addEventListener('click', () => {
+  document.getElementById('registerBlock').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'flex';
+  document.getElementById('nameInput').focus();
+});
+
+function submitScore(){
+  const input = document.getElementById('nameInput');
+  const name = input.value.trim().slice(0, 14) || 'Jogador';
+  leaderboard.push({ name, score: state.score, mode: state.mode });
+  leaderboard.sort((a, b) => b.score - a.score);
+  leaderboard = leaderboard.slice(0, CONFIG.leaderboardMax);
+  document.getElementById('registerForm').style.display = 'none';
+  renderLeaderboardList();
+}
+document.getElementById('confirmRegisterBtn').addEventListener('click', submitScore);
+document.getElementById('nameInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') submitScore();
+});
+
+// ---------------------------------------------------------------------
+// Atalhos de teclado físico — essenciais num jogo de velocidade
+// ---------------------------------------------------------------------
+document.addEventListener('keydown', (e) => {
+  if(!state.running) return;
+  const q = state.currentQuestion;
+  if(!q) return;
+
+  if((q.type === 'choice' || q.type === 'graph') && /^[1-5]$/.test(e.key)){
+    const btn = stage.querySelector(`.opt-btn[data-index="${Number(e.key) - 1}"]`);
+    if(btn) btn.click();
+  }
+
+  if(q.type === 'pair' && /^[1-2]$/.test(e.key)){
+    const card = stage.querySelector(`.pair-card[data-index="${Number(e.key) - 1}"]`);
+    if(card) card.click();
+  }
+
+  if(q.type === 'boolean'){
+    if(e.key.toLowerCase() === 'c') stage.querySelector('.bool-btn.certo').click();
+    if(e.key.toLowerCase() === 'e') stage.querySelector('.bool-btn.errado').click();
+  }
+
+  if(q.type === 'input' && state.inputHandlers){
+    if(/^[0-9]$/.test(e.key)) state.inputHandlers.append(e.key);
+    else if(e.key === '.') state.inputHandlers.append('.');
+    else if(e.key === 'Backspace') state.inputHandlers.back();
+    else if(e.key === 'Enter') state.inputHandlers.submit();
+  }
+});
+
+// ---------------------------------------------------------------------
+// Start
+// ---------------------------------------------------------------------
+buildModeCheckboxes();
+renderLeaderboardPreview();
+</script>
+</body>
+</html>
